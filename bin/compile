@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# bin/compile <BUILD_DIR> <CACHE_DIR> <ENV_DIR>
+
+set -eu -o pipefail
+
+BUILDPACK_DIR="$(dirname "$(dirname "$0")")"
+BUILD_DIR="$1"
+CACHE_DIR="$2"
+ENV_DIR="$3"
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+echo 'Copying files' | indent
+cp "$BUILDPACK_DIR"/{index.js,package.json} "$BUILD_DIR"
+
+echo -n 'Fetching Node.js buildpack...' | indent
+git submodule --quiet init && git submodule --quiet update
+echo ' done'
+
+"$BUILDPACK_DIR"/heroku-buildpack-nodejs/bin/compile "$BUILD_DIR" "$CACHE_DIR" "$ENV_DIR"
+
+source "$BUILDPACK_DIR"/heroku-buildpack-nodejs/export
+
+echo '-----> Running graphdoc'
+npx @2fd/graphdoc@2.4.0 -s "$BUILD_DIR"/schema.graphql -o "$BUILD_DIR"/doc/schema 2>&1 | indent

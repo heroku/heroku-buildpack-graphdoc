@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# bin/release <BUILD_DIR>
+
+set -eu -o pipefail
+
+BUILDPACK_DIR="$(dirname "$(dirname "$0")")"
+BUILD_DIR="$1"
+
+"$BUILDPACK_DIR"/heroku-buildpack-nodejs/bin/release "$BUILD_DIR"
